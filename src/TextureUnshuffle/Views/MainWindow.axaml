@@ -1,0 +1,195 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:TextureUnshuffle.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
+        x:Class="TextureUnshuffle.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="TextureUnshuffle"
+        MinWidth="800" MinHeight="500"
+        Background="#1a1a2e">
+
+    <Window.Styles>
+        <!-- Tile button: no chrome, no hover highlight -->
+        <Style Selector="Button.tile">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.tile:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <!-- Selection highlight on the inner Border -->
+        <Style Selector="Border.tile-border">
+            <Setter Property="BorderBrush" Value="#2a2a4a"/>
+        </Style>
+        <Style Selector="Border.tile-border.selected">
+            <Setter Property="BorderBrush" Value="#f2a100"/>
+        </Style>
+    </Window.Styles>
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Ctrl+Z" Command="{Binding UndoCommand}"/>
+        <KeyBinding Gesture="Ctrl+Y" Command="{Binding RedoCommand}"/>
+    </Window.KeyBindings>
+
+    <Grid>
+    <DockPanel x:Name="RootPanel" DragDrop.AllowDrop="True">
+
+        <!-- ── Toolbar ──────────────────────────────────────────────── -->
+        <Border DockPanel.Dock="Top" Background="#16213e" Padding="8,5">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <Button Command="{Binding OpenFileCommand}"
+                        Content="📂 Открыть файл"
+                        Padding="10,4"/>
+                <Separator Width="1" Background="#444" Margin="4,0"/>
+                <TextBlock Text="Тайл:" VerticalAlignment="Center" Foreground="#ccc"/>
+                <NumericUpDown Value="{Binding TileSize}"
+                               Minimum="1" Maximum="256" Width="100"
+                               FormatString="0"/>
+                <TextBlock Text="px" VerticalAlignment="Center" Foreground="#ccc"/>
+                <TextBlock Text="Сетка:" VerticalAlignment="Center" Foreground="#ccc" Margin="8,0,0,0"/>
+                <NumericUpDown Value="{Binding Cols}"
+                               Minimum="1" Maximum="64" Width="200"
+                               FormatString="0"/>
+                <TextBlock Text="×" VerticalAlignment="Center" Foreground="#ccc"/>
+                <NumericUpDown Value="{Binding Rows}"
+                               Minimum="1" Maximum="64" Width="200"
+                               FormatString="0"/>
+                <Button Command="{Binding ApplyGridCommand}"
+                        Content="Применить"
+                        Padding="10,4"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ── Status bar ───────────────────────────────────────────── -->
+        <Border DockPanel.Dock="Bottom" Background="#16213e" Padding="8,5">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="Seed:" VerticalAlignment="Center" Foreground="#ccc"/>
+                <NumericUpDown Value="{Binding Seed}"
+                               Minimum="0" Maximum="9999999" Width="200"
+                               FormatString="0"/>
+                <Button Content="▶ Авто-восстановить"
+                        Command="{Binding AutoRestoreCommand}"
+                        IsEnabled="{Binding IsGridLoaded}"
+                        Padding="10,4"/>
+                <Button Content="↩ Сброс"
+                        Command="{Binding ResetCommand}"
+                        IsEnabled="{Binding IsGridLoaded}"
+                        Padding="10,4"/>
+                <Button Content="↩ Undo"
+                        Command="{Binding UndoCommand}"
+                        Padding="10,4"/>
+                <Button Content="↪ Redo"
+                        Command="{Binding RedoCommand}"
+                        Padding="10,4"/>
+                <Separator Width="1" Background="#444" Margin="4,0"/>
+                <Button Content="💾 Сохранить"
+                        Command="{Binding SaveCommand}"
+                        IsEnabled="{Binding IsGridLoaded}"
+                        Padding="10,4"/>
+                <Button Content="💾 Сохранить как..."
+                        Command="{Binding SaveAsCommand}"
+                        IsEnabled="{Binding IsGridLoaded}"
+                        Padding="10,4"/>
+                <Separator Width="1" Background="#444" Margin="4,0"/>
+                <TextBlock Text="{Binding Status}"
+                           VerticalAlignment="Center"
+                           Foreground="#f2a100"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ── Three panels ─────────────────────────────────────────── -->
+        <Grid ColumnDefinitions="*,*,Auto">
+
+            <!-- Original -->
+            <DockPanel Grid.Column="0" Margin="4">
+                <TextBlock DockPanel.Dock="Top"
+                           Text="Оригинал"
+                           Foreground="#aaa"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,4"/>
+                <Border Background="#0d0d1a" CornerRadius="4">
+                    <Image Source="{Binding OriginalImage}"
+                           Stretch="Uniform"
+                           RenderOptions.BitmapInterpolationMode="None"/>
+                </Border>
+            </DockPanel>
+
+            <!-- Result -->
+            <DockPanel Grid.Column="1" Margin="4">
+                <TextBlock DockPanel.Dock="Top"
+                           Text="Результат"
+                           Foreground="#aaa"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,4"/>
+                <Border Background="#0d0d1a" CornerRadius="4">
+                    <Image Source="{Binding ResultImage}"
+                           Stretch="Uniform"
+                           RenderOptions.BitmapInterpolationMode="None"/>
+                </Border>
+            </DockPanel>
+
+            <!-- Tile grid -->
+            <DockPanel Grid.Column="2" Margin="4" Width="{Binding TileGridWidth}">
+                <TextBlock DockPanel.Dock="Top"
+                           Text="Тайлы"
+                           Foreground="#aaa"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,4"/>
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding TileItems}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:TileItemViewModel">
+                                <Button Classes="tile"
+                                        Command="{Binding SelectCommand}"
+                                        CommandParameter="{Binding Position}">
+                                    <Border Classes="tile-border"
+                                            Classes.selected="{Binding IsSelected}"
+                                            BorderThickness="2">
+                                        <Image Source="{Binding Image}"
+                                               Width="32" Height="32"
+                                               RenderOptions.BitmapInterpolationMode="None"/>
+                                    </Border>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+
+        </Grid>
+    </DockPanel>
+
+    <!-- Drag-and-drop overlay -->
+    <Border x:Name="DropOverlay"
+            IsVisible="False"
+            Background="#CC0d0d1a"
+            IsHitTestVisible="False">
+        <Border Background="#1a1a2e"
+                BorderBrush="#f2a100"
+                BorderThickness="3"
+                CornerRadius="8"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Padding="40,24">
+            <TextBlock Text="Отпустите файл для загрузки"
+                       FontSize="20"
+                       Foreground="#f2a100"
+                       HorizontalAlignment="Center"/>
+        </Border>
+    </Border>
+    </Grid>
+</Window>
