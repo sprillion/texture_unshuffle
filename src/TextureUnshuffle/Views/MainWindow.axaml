@@ -209,7 +209,7 @@
         </Border>
 
         <!-- ── Three panels ─────────────────────────────────────────── -->
-        <Grid ColumnDefinitions="*,*,Auto">
+        <Grid ColumnDefinitions="*,2*,*">
 
             <!-- Original / Reference -->
             <DockPanel Grid.Column="0" Margin="4">
@@ -225,28 +225,15 @@
                 </Border>
             </DockPanel>
 
-            <!-- Result -->
-            <DockPanel Grid.Column="1" Margin="4">
-                <TextBlock DockPanel.Dock="Top"
-                           Text="Результат"
-                           Foreground="#aaa"
-                           HorizontalAlignment="Center"
-                           Margin="0,0,0,4"/>
-                <Border Background="#0d0d1a" CornerRadius="4">
-                    <Image Source="{Binding ResultImage}"
-                           Stretch="Uniform"
-                           RenderOptions.BitmapInterpolationMode="None"/>
-                </Border>
-            </DockPanel>
-
             <!-- Tile grid -->
-            <DockPanel Grid.Column="2" Margin="4" Width="{Binding TileGridWidth}">
+            <DockPanel Grid.Column="1" Margin="4">
                 <TextBlock DockPanel.Dock="Top"
                            Text="Тайлы"
                            Foreground="#aaa"
                            HorizontalAlignment="Center"
                            Margin="0,0,0,4"/>
-                <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                <ScrollViewer x:Name="TileScrollViewer"
+                              HorizontalScrollBarVisibility="Disabled"
                               VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding TileItems}">
                         <ItemsControl.ItemsPanel>
@@ -263,7 +250,8 @@
                                             Classes.selected="{Binding IsSelected}"
                                             BorderThickness="2">
                                         <Image Source="{Binding Image}"
-                                               Width="32" Height="32"
+                                               Width="{Binding TileDisplaySize}"
+                                               Height="{Binding TileDisplaySize}"
                                                RenderOptions.BitmapInterpolationMode="None"/>
                                     </Border>
                                 </Button>
@@ -271,6 +259,20 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
+            </DockPanel>
+
+            <!-- Result -->
+            <DockPanel Grid.Column="2" Margin="4">
+                <TextBlock DockPanel.Dock="Top"
+                           Text="Результат"
+                           Foreground="#aaa"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,4"/>
+                <Border Background="#0d0d1a" CornerRadius="4">
+                    <Image Source="{Binding ResultImage}"
+                           Stretch="Uniform"
+                           RenderOptions.BitmapInterpolationMode="None"/>
+                </Border>
             </DockPanel>
 
         </Grid>

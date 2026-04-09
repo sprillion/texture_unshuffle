@@ -54,6 +54,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TileGridWidth))]
+    [NotifyPropertyChangedFor(nameof(TileDisplaySize))]
     private decimal _cols = 8;
 
     [ObservableProperty] private decimal _rows = 8;
@@ -119,8 +120,30 @@ public partial class MainWindowViewModel : ViewModelBase
     public string RefFileName               => _refFilePath is null ? "" : System.IO.Path.GetFileName(_refFilePath);
     public string RefMatchingConfidenceText => _refMatchingConfidence > 0f ? $"{_refMatchingConfidence:P0}" : "";
 
-    private const int TileDisplaySize = 32;
     private const int TileBorderThickness = 2;
+
+    private double _tilePanelWidth = 550;
+    public double TilePanelWidth
+    {
+        get => _tilePanelWidth;
+        set
+        {
+            if (_tilePanelWidth == value) return;
+            _tilePanelWidth = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(TileDisplaySize));
+            UpdateTileDisplaySizes();
+        }
+    }
+
+    private void UpdateTileDisplaySizes()
+    {
+        int size = TileDisplaySize;
+        foreach (var item in TileItems)
+            item.TileDisplaySize = size;
+    }
+
+    public int TileDisplaySize => Math.Max(8, (int)(_tilePanelWidth / Math.Max(1, (int)Cols)) - TileBorderThickness * 2);
 
     public int TileGridWidth => (int)Cols * (TileDisplaySize + TileBorderThickness * 2) + 4;
 
@@ -631,7 +654,8 @@ public partial class MainWindowViewModel : ViewModelBase
             TileItems.Add(new TileItemViewModel(
                 GetTilePreview(pos),
                 pos,
-                SelectTileCommand));
+                SelectTileCommand,
+                TileDisplaySize));
         }
     }
 

@@ -18,6 +18,14 @@ public partial class MainWindow : Window, IDialogService
         AddHandler(DragDrop.DragOverEvent, OnDragOver);
         AddHandler(DragDrop.DragLeaveEvent, OnDragLeave);
         AddHandler(DragDrop.DropEvent, OnFileDrop);
+
+        TileScrollViewer.SizeChanged += OnTileScrollViewerSizeChanged;
+    }
+
+    private void OnTileScrollViewerSizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+            vm.TilePanelWidth = e.NewSize.Width;
     }
 
 #pragma warning disable CS0618 // DataTransfer API still in transition
