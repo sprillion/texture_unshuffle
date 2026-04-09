@@ -70,53 +70,156 @@
 
         <!-- ── Status bar ───────────────────────────────────────────── -->
         <Border DockPanel.Dock="Bottom" Background="#16213e" Padding="8,5">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="Seed:" VerticalAlignment="Center" Foreground="#ccc"/>
-                <NumericUpDown Value="{Binding Seed}"
-                               Minimum="0" Maximum="9999999" Width="200"
-                               FormatString="0"/>
-                <Button Content="▶ Авто-восстановить"
-                        Command="{Binding AutoRestoreCommand}"
-                        IsEnabled="{Binding IsGridLoaded}"
-                        Padding="10,4"/>
-                <Button Content="↩ Сброс"
-                        Command="{Binding ResetCommand}"
-                        IsEnabled="{Binding IsGridLoaded}"
-                        Padding="10,4"/>
-                <Button Content="↩ Undo"
-                        Command="{Binding UndoCommand}"
-                        Padding="10,4"/>
-                <Button Content="↪ Redo"
-                        Command="{Binding RedoCommand}"
-                        Padding="10,4"/>
-                <Separator Width="1" Background="#444" Margin="4,0"/>
-                <Button Content="💾 Сохранить"
-                        Command="{Binding SaveCommand}"
-                        IsEnabled="{Binding IsGridLoaded}"
-                        Padding="10,4"/>
-                <Button Content="💾 Сохранить как..."
-                        Command="{Binding SaveAsCommand}"
-                        IsEnabled="{Binding IsGridLoaded}"
-                        Padding="10,4"/>
-                <Separator Width="1" Background="#444" Margin="4,0"/>
-                <TextBlock Text="{Binding Status}"
-                           VerticalAlignment="Center"
-                           Foreground="#f2a100"/>
+            <StackPanel Orientation="Vertical" Spacing="4">
+
+                <!-- Row 1: Seed / basic actions / rotation / save / status -->
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="Seed:" VerticalAlignment="Center" Foreground="#ccc"/>
+                    <NumericUpDown Value="{Binding Seed}"
+                                   Minimum="0" Maximum="9999999" Width="110"
+                                   FormatString="0"/>
+                    <Button Content="▶ Авто-восстановить"
+                            Command="{Binding AutoRestoreCommand}"
+                            IsEnabled="{Binding IsGridLoaded}"
+                            Padding="10,4"/>
+                    <Button Content="↩ Сброс"
+                            Command="{Binding ResetCommand}"
+                            IsEnabled="{Binding IsGridLoaded}"
+                            Padding="10,4"/>
+                    <Button Content="↩ Undo"
+                            Command="{Binding UndoCommand}"
+                            Padding="10,4"/>
+                    <Button Content="↪ Redo"
+                            Command="{Binding RedoCommand}"
+                            Padding="10,4"/>
+                    <Separator Width="1" Background="#444" Margin="4,0"/>
+                    <Button Content="↺ Повернуть"
+                            Command="{Binding RotateTileCcwCommand}"
+                            IsEnabled="{Binding IsTileSelected}"
+                            Padding="10,4" ToolTip.Tip="Повернуть выбранный тайл против часовой стрелки"/>
+                    <Button Content="↻ Повернуть"
+                            Command="{Binding RotateTileCwCommand}"
+                            IsEnabled="{Binding IsTileSelected}"
+                            Padding="10,4" ToolTip.Tip="Повернуть выбранный тайл по часовой стрелке"/>
+                    <Button Content="↔ По гориз."
+                            Command="{Binding FlipTileHCommand}"
+                            IsEnabled="{Binding IsTileSelected}"
+                            Padding="10,4" ToolTip.Tip="Отразить выбранный тайл по горизонтали"/>
+                    <Button Content="↕ По верт."
+                            Command="{Binding FlipTileVCommand}"
+                            IsEnabled="{Binding IsTileSelected}"
+                            Padding="10,4" ToolTip.Tip="Отразить выбранный тайл по вертикали"/>
+                    <Separator Width="1" Background="#444" Margin="4,0"/>
+                    <Button Content="💾 Сохранить"
+                            Command="{Binding SaveCommand}"
+                            IsEnabled="{Binding IsGridLoaded}"
+                            Padding="10,4"/>
+                    <Button Content="💾 Сохранить как..."
+                            Command="{Binding SaveAsCommand}"
+                            IsEnabled="{Binding IsGridLoaded}"
+                            Padding="10,4"/>
+                    <Separator Width="1" Background="#444" Margin="4,0"/>
+                    <TextBlock Text="{Binding Status}"
+                               VerticalAlignment="Center"
+                               Foreground="#f2a100"/>
+                </StackPanel>
+
+                <!-- Row 2: Solvers -->
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <!-- Edge Matching -->
+                    <Button Content="🧩 Edge Matching"
+                            Command="{Binding RunEdgeMatchingCommand}"
+                            IsEnabled="{Binding IsGridLoaded}"
+                            Padding="10,4"/>
+                    <Button Content="✕"
+                            Command="{Binding CancelEdgeMatchingCommand}"
+                            IsVisible="{Binding IsEdgeMatchingRunning}"
+                            Padding="6,4" ToolTip.Tip="Отменить"/>
+                    <ProgressBar Value="{Binding EdgeMatchingProgress}"
+                                 Minimum="0" Maximum="100"
+                                 Width="100" Height="14"
+                                 IsVisible="{Binding IsEdgeMatchingRunning}"/>
+                    <TextBlock Text="{Binding EdgeMatchingConfidenceText}"
+                               VerticalAlignment="Center"
+                               Foreground="#6be86b"
+                               IsVisible="{Binding !IsEdgeMatchingRunning}"/>
+                    <Separator Width="1" Background="#444" Margin="4,0"/>
+                    <!-- UV Solver -->
+                    <Button Content="📐 Загрузить модель..."
+                            Command="{Binding LoadModelCommand}"
+                            IsEnabled="{Binding IsGridLoaded}"
+                            Padding="10,4"/>
+                    <TextBlock Text="{Binding UvModelFileName}"
+                               VerticalAlignment="Center"
+                               Foreground="#8ab4f8"
+                               IsVisible="{Binding IsModelLoaded}"
+                               MaxWidth="100"
+                               TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{Binding UvConstraintCount}"
+                               VerticalAlignment="Center"
+                               Foreground="#aaa"
+                               IsVisible="{Binding IsModelLoaded}"/>
+                    <Button Content="▶ UV-солвер"
+                            Command="{Binding RunUvSolverCommand}"
+                            IsEnabled="{Binding IsModelLoaded}"
+                            Padding="10,4"/>
+                    <Button Content="✕"
+                            Command="{Binding CancelUvSolverCommand}"
+                            IsVisible="{Binding IsUvSolverRunning}"
+                            Padding="6,4" ToolTip.Tip="Отменить"/>
+                    <ProgressBar Value="{Binding UvSolverProgress}"
+                                 Minimum="0" Maximum="100"
+                                 Width="100" Height="14"
+                                 IsVisible="{Binding IsUvSolverRunning}"/>
+                    <TextBlock Text="{Binding UvSolverConfidenceText}"
+                               VerticalAlignment="Center"
+                               Foreground="#6be86b"
+                               IsVisible="{Binding !IsUvSolverRunning}"/>
+                    <Separator Width="1" Background="#444" Margin="4,0"/>
+                    <!-- Reference Matching -->
+                    <Button Content="🖼 Загрузить эталон..."
+                            Command="{Binding LoadRefTextureCommand}"
+                            IsEnabled="{Binding IsGridLoaded}"
+                            Padding="10,4"/>
+                    <TextBlock Text="{Binding RefFileName}"
+                               VerticalAlignment="Center"
+                               Foreground="#8ab4f8"
+                               IsVisible="{Binding IsRefLoaded}"
+                               MaxWidth="100"
+                               TextTrimming="CharacterEllipsis"/>
+                    <Button Content="▶ Ref Matching"
+                            Command="{Binding RunRefMatchingCommand}"
+                            IsEnabled="{Binding IsRefLoaded}"
+                            Padding="10,4"/>
+                    <Button Content="✕"
+                            Command="{Binding CancelRefMatchingCommand}"
+                            IsVisible="{Binding IsRefMatchingRunning}"
+                            Padding="6,4" ToolTip.Tip="Отменить"/>
+                    <ProgressBar Value="{Binding RefMatchingProgress}"
+                                 Minimum="0" Maximum="100"
+                                 Width="100" Height="14"
+                                 IsVisible="{Binding IsRefMatchingRunning}"/>
+                    <TextBlock Text="{Binding RefMatchingConfidenceText}"
+                               VerticalAlignment="Center"
+                               Foreground="#6be86b"
+                               IsVisible="{Binding !IsRefMatchingRunning}"/>
+                </StackPanel>
+
             </StackPanel>
         </Border>
 
         <!-- ── Three panels ─────────────────────────────────────────── -->
         <Grid ColumnDefinitions="*,*,Auto">
 
-            <!-- Original -->
+            <!-- Original / Reference -->
             <DockPanel Grid.Column="0" Margin="4">
                 <TextBlock DockPanel.Dock="Top"
-                           Text="Оригинал"
+                           Text="{Binding LeftPanelLabel}"
                            Foreground="#aaa"
                            HorizontalAlignment="Center"
                            Margin="0,0,0,4"/>
                 <Border Background="#0d0d1a" CornerRadius="4">
-                    <Image Source="{Binding OriginalImage}"
+                    <Image Source="{Binding LeftPanelImage}"
                            Stretch="Uniform"
                            RenderOptions.BitmapInterpolationMode="None"/>
                 </Border>

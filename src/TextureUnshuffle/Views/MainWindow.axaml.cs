@@ -63,6 +63,21 @@ public partial class MainWindow : Window, IDialogService
         return files.Count > 0 ? files[0].Path.LocalPath : null;
     }
 
+    public async Task<string?> OpenModelFileAsync()
+    {
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Открыть 3D-модель",
+            AllowMultiple = false,
+            FileTypeFilter =
+            [
+                new FilePickerFileType("3D-модели") { Patterns = ["*.obj", "*.gltf", "*.glb"] },
+                new FilePickerFileType("Все файлы") { Patterns = ["*.*"] }
+            ]
+        });
+        return files.Count > 0 ? files[0].Path.LocalPath : null;
+    }
+
     public async Task<string?> SaveFileAsync(string? suggestedFileName)
     {
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
@@ -76,4 +91,10 @@ public partial class MainWindow : Window, IDialogService
         });
         return file?.Path.LocalPath;
     }
+
+    public Task ShowErrorAsync(string title, string message)
+        => AppDialog.ShowErrorAsync(this, title, message);
+
+    public Task<bool> ConfirmAsync(string title, string message)
+        => AppDialog.ConfirmAsync(this, title, message);
 }
