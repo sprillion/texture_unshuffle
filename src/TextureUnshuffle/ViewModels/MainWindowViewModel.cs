@@ -561,7 +561,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             _grid.Arrangement     = result.Arrangement;
             _grid.Rotations       = result.Rotations ?? new int[_grid.Cols * _grid.Rows];
-            _grid.Flips           = new int[_grid.Cols * _grid.Rows];
+            _grid.Flips           = result.Flips     ?? new int[_grid.Cols * _grid.Rows];
             RefMatchingConfidence = result.Confidence;
             ResultImage = BitmapConverter.ToAvaloniaBitmap(_grid.BuildResultBitmap());
             RefreshTileItems();

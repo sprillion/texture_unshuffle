@@ -38,24 +38,35 @@ public class ReferenceTextureSolver
         int n           = cols * rows;
         int refTileSize = refTiles[0].Width;
 
-        // Precompute all (srcTile × 4 rotations) downscaled to refTileSize.
-        // This avoids redundant rotate+downscale inside the O(n²) cost loop.
-        var srcCached = new SKBitmap[n, 4];
+        // 8 transforms: variants 0–3 = rotations (no flip), variants 4–7 = flipH then rotate 0–3.
+        // variant = rot + (flipH ? 4 : 0)
+        const int TransformCount = 8;
+
+        // Precompute all (srcTile × 8 transforms) downscaled to refTileSize.
+        var srcCached = new SKBitmap[n, TransformCount];
         try
         {
             for (int si = 0; si < n; si++)
             {
                 ct.ThrowIfCancellationRequested();
+                // No flip (variants 0–3)
                 for (int rot = 0; rot < 4; rot++)
                 {
                     using var rotated = TileGrid.RotateBitmap(srcTiles[si], rot);
                     srcCached[si, rot] = Downscale(rotated, refTileSize);
                 }
+                // FlipH then rotate (variants 4–7)
+                using var flipped = TileGrid.FlipBitmap(srcTiles[si], 1);
+                for (int rot = 0; rot < 4; rot++)
+                {
+                    using var rotated = TileGrid.RotateBitmap(flipped, rot);
+                    srcCached[si, 4 + rot] = Downscale(rotated, refTileSize);
+                }
             }
 
-            // Build cost matrix: cost[refPos, srcIdx] = min MSE over 4 rotations.
-            float[,] cost    = new float[n, n];
-            int[,]   bestRot = new int[n, n];
+            // Build cost matrix: cost[refPos, srcIdx] = min MSE over 8 transforms.
+            float[,] cost      = new float[n, n];
+            int[,]   bestTrans = new int[n, n]; // 0–7
 
             for (int refPos = 0; refPos < n; refPos++)
             {
@@ -64,15 +75,15 @@ public class ReferenceTextureSolver
 
                 for (int si = 0; si < n; si++)
                 {
-                    float minMse = float.MaxValue;
-                    int   minRot = 0;
-                    for (int rot = 0; rot < 4; rot++)
+                    float minMse  = float.MaxValue;
+                    int   minTrans = 0;
+                    for (int t = 0; t < TransformCount; t++)
                     {
-                        float mse = ComputeMse(refTile, srcCached[si, rot]);
-                        if (mse < minMse) { minMse = mse; minRot = rot; }
+                        float mse = ComputeMse(refTile, srcCached[si, t]);
+                        if (mse < minMse) { minMse = mse; minTrans = t; }
                     }
-                    cost[refPos, si]    = minMse;
-                    bestRot[refPos, si] = minRot;
+                    cost[refPos, si]      = minMse;
+                    bestTrans[refPos, si] = minTrans;
                 }
 
                 progress?.Report(refPos * 80 / n); // 0–80 %
@@ -82,6 +93,7 @@ public class ReferenceTextureSolver
             // At each step pick the globally minimum cost cell among unassigned pairs.
             int[] arrangement = new int[n];
             int[] rotations   = new int[n];
+            int[] flips       = new int[n];
             bool[] usedRef    = new bool[n];
             bool[] usedSrc    = new bool[n];
 
@@ -108,8 +120,10 @@ public class ReferenceTextureSolver
                     }
                 }
 
+                int trans = bestTrans[bestRef, bestSrc];
                 arrangement[bestRef] = bestSrc;
-                rotations[bestRef]   = bestRot[bestRef, bestSrc];
+                rotations[bestRef]   = trans & 3;        // bits 0–1: rotation
+                flips[bestRef]       = (trans >> 2) & 1; // bit 2: flipH → bitmask bit 0
                 usedRef[bestRef]     = true;
                 usedSrc[bestSrc]     = true;
 
@@ -121,6 +135,7 @@ public class ReferenceTextureSolver
             {
                 Arrangement = arrangement,
                 Rotations   = rotations,
+                Flips       = flips,
                 Confidence  = 1f
             };
         }
@@ -128,8 +143,8 @@ public class ReferenceTextureSolver
         {
             // Dispose all cached bitmaps
             for (int si = 0; si < n; si++)
-                for (int rot = 0; rot < 4; rot++)
-                    srcCached[si, rot]?.Dispose();
+                for (int t = 0; t < TransformCount; t++)
+                    srcCached[si, t]?.Dispose();
         }
     }
 
